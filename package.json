@@ -1,0 +1,44 @@
+{
+  "name": "awesome-renamer",
+  "version": "1.0.0",
+  "description": "Rename files and directories using Windows Explorer-style naming, collision handling, and filename validation.",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsdown src/index.ts --format esm,cjs --dts",
+    "test": "tsdown src/index.ts --format cjs --platform node --out-dir .test-dist && node --test test/api.test.cjs",
+    "prepublishOnly": "npm run build"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Muhammad-Taif-Khan/awesome-renamer.git"
+  },
+  "keywords": [
+    "windows-like-renamer",
+    "file-renamer",
+    "explorer",
+    "renamer"
+  ],
+  "author": "Muhammad Taif Khan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Muhammad-Taif-Khan/awesome-renamer.git/issues"
+  },
+  "homepage": "https://github.com/Muhammad-Taif-Khan/awesome-renamer.git#readme",
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsdown": "^0.21.10",
+    "typescript": "^6.0.2"
+  }
+}
