@@ -52,7 +52,7 @@ export const getduplicatedNameWithCounter = async (
 ): Promise<{ ext: string; basename: string }> => {
   const fileAbsPath = path.dirname(filePath);
   const directroryItems = await readdir(fileAbsPath);
-  const ext = path.extname(filePath);
+  const ext = path.extname(fileNewName) || path.extname(filePath);
 
   //get the basename of the file new name
   const fileNewBasename = path.basename(fileNewName, ext);
