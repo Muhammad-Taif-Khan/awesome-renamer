@@ -1,9 +1,10 @@
-export { renameFileSameAsWindowsOS } from "./rename";
 export { validateFileName } from "./validator";
-console.error(
-  "Warning: This package is deprecated. Please use the new package awesome-renamer instead.",
-);
+export { awesomeRename, awesomeRenameBatch } from "./rename";
+export { renameFileSameAsWindowsOS } from "./renameWindowsStyle";
+export { registry } from "./rules/ruleRegistry";
 export type {
-  RenameFileSameAsWindowsOSType,
+  AwesomeRename,
+  AwesomeRenameBatch,
   ValidateFileNameType,
-} from "./types";
+  RenameFileSameAsWindowsOSType,
+} from "./types/types";

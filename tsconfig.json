@@ -3,7 +3,8 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "rootDir": "./src",
     "outDir": "./dist",
 
