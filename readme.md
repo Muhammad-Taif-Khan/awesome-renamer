@@ -27,17 +27,18 @@ npm install awesome-renamer
 ## Quick start
 
 ```ts
-import { renameFileSameAsWindowsOS } from "awesome-renamer";
+import { awesomeRename } from "awesome-renamer";
 
-const renamedTo = await renameFileSameAsWindowsOS(
+const { newName, newPath } = await awesomeRename(
   "C:/documents/draft.txt",
-  "report.txt",
+  "report",
 );
 
-console.log(renamedTo); // "report.txt"
+console.log(newName); // "report.txt"
+console.log(newPath); // "C:\\documents\\report.txt" on Windows
 ```
 
-The file is renamed in its current directory. The returned value is the final filename, not its full path.
+By default, `awesomeRename` preserves the source extension and returns the final filename and destination path.
 
 ## Usage
 
@@ -135,6 +136,115 @@ const {
 ```
 
 ## API
+
+### `awesomeRename(oldFilePath, newName, options?)`
+
+The primary API for renaming one file or directory. It applies any configured rules, validates the result, and then renames the item. It resolves with `{ newName, newPath }`.
+
+```ts
+import { awesomeRename } from "awesome-renamer";
+
+const result = await awesomeRename(
+  "C:/uploads/draft.TXT",
+  "quarter one",
+  {
+    rules: [
+      { type: "replace", search: " ", replace: "-" },
+      { type: "uppercase", filename: "quarter one" },
+      { type: "windowsStyle" },
+    ],
+  },
+);
+
+console.log(result);
+// { newName: "QUARTER-ONE.TXT", newPath: "C:\\uploads\\QUARTER-ONE.TXT" }
+```
+
+| Parameter | Type | Description |
+| ---------- | ------------------------ | ------------------------------------------------------- |
+| `oldFilePath` | `string` | Path of the existing file or directory. |
+| `newName` | `string` | Requested name, before rules and validation are applied. |
+| `options` | `RenameOptions` | Optional rename, validation, and rule settings. |
+
+#### `RenameOptions`
+
+| Property | Type | Default | Description |
+| -------- | ------------------------------ | ------------ | ---------------------------------------------------------------------- |
+| `onInvalidChar` | `"escape" \| "error"` | `"escape"` | Remove invalid characters or throw an error. |
+| `preserveExtension` | `boolean` | `true` | Append the source item's extension to `newName`. Set to `false` to supply the complete target name, including any new extension. |
+| `dryRun` | `boolean` | `false` | Return the planned `{ newName, newPath }` without changing the filesystem. |
+| `rules` | `RenameRule[]` | `[]` | Rules applied in order before validation and renaming. |
+
+#### Built-in rules
+
+Rules transform the requested name in the order listed. Case and replacement rules leave the extension unchanged; extension preservation is configured separately with `preserveExtension`.
+
+| Rule | Shape | Effect |
+| ---- | ----- | ------ |
+| Uppercase | `{ type: "uppercase", filename: string }` | Converts the basename to uppercase. |
+| Lowercase | `{ type: "lowercase", filename: string }` | Converts the basename to lowercase. |
+| Capitalize | `{ type: "capitalize", filename: string }` | Capitalizes the first basename character and lowercases the rest. |
+| Title case | `{ type: "titlecase", filename: string }` | Capitalizes each space-separated basename word. |
+| Replace | `{ type: "replace", search: string, replace: string }` | Replaces every occurrence of `search` in the basename. |
+| Windows style | `{ type: "windowsStyle" }` | Resolves conflicts by adding or incrementing a suffix such as ` (2)`. |
+
+Use `dryRun` to preview a rule chain safely:
+
+```ts
+const preview = await awesomeRename(
+  "C:/uploads/draft.txt",
+  "monthly report",
+  {
+    dryRun: true,
+    rules: [{ type: "titlecase", filename: "monthly report" }],
+  },
+);
+
+console.log(preview.newName); // "Monthly Report.txt"
+```
+
+### `awesomeRenameBatch(filesToRename, options?)`
+
+Renames several items using the same `RenameOptions`. It always resolves with results in input order: successful entries contain the rename result plus `renamed: true`; failed entries contain an error message and `renamed: false`. A failed item does not stop the remaining requests.
+
+```ts
+import { awesomeRenameBatch } from "awesome-renamer";
+
+const results = await awesomeRenameBatch(
+  [
+    { oldPath: "C:/uploads/one.txt", newName: "report-one" },
+    { oldPath: "C:/uploads/two.txt", newName: "report-two" },
+  ],
+  {
+    limit: 2,
+    rules: [{ type: "windowsStyle" }],
+  },
+);
+```
+
+| Parameter | Type | Description |
+| ---------- | ------------------------ | ------------------------------------------------------- |
+| `filesToRename` | `{ oldPath: string; newName: string }[]` | Rename requests to process. |
+| `options` | `RenameOptions & { limit?: number }` | Shared options. `limit` controls concurrency (default: `6`, clamped to `1`–`30`). |
+
+### `registry`
+
+`registry` exposes the built-in rule registry. Use `get`, `has`, and `getAll` to inspect rules, or `register` to add a rule with a unique `type`.
+
+```ts
+import { registry } from "awesome-renamer";
+
+registry.register({
+  type: "trim",
+  apply: (filename) => filename.trim(),
+});
+```
+
+Registering a rule type that already exists throws an error. Custom rules can be inspected through the registry; the built-in `RenameRule` TypeScript type currently covers the rules listed above.
+
+### Legacy Windows-style API
+
+`renameFileSameAsWindowsOS` remains available for compatibility, but is deprecated and will be removed in the next major release. Use `awesomeRename` with `{ rules: [{ type: "windowsStyle" }] }` for new code.
 
 ### `renameFileSameAsWindowsOS(oldFilePath, newName, options?)`
 

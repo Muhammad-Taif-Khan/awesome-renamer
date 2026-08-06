@@ -1,5 +1,5 @@
 import { INVALID_WINDOWS_FILENAME_CHARS, WINDOWS_RESERVED_NAMES } from "./constants";
-import { ValidateFileNameType } from "./types";
+import { ValidateFileNameType } from "./types/types";
 
 function isEmpty (str: string): boolean {
     return str.trim().length === 0;
