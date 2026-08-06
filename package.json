@@ -1,7 +1,7 @@
 {
   "name": "awesome-renamer",
-  "version": "1.0.0",
-  "description": "Rename files and directories using Windows Explorer-style naming, collision handling, and filename validation.",
+  "version": "2.0.0",
+  "description": "Rule-based file and directory renaming with single and batch APIs, validation, and collision handling.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
