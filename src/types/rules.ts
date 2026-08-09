@@ -2,9 +2,8 @@ interface WindowsStyleRule  {
     type: 'windowsStyle'
 };
 
-type CasingRule<T extends string> =  {
-    type: T,
-    filename: string
+type CasingRule<T extends string> = {
+  type: T;
 };
 type UpperCaseRule  = CasingRule<"uppercase">;
 type LowerCaseRule  = CasingRule<"lowercase">;
@@ -17,4 +16,10 @@ type ReplaceRule = {
     replace: string;
 };
 
-export type RenameRule= WindowsStyleRule | ReplaceRule | UpperCaseRule | LowerCaseRule | CapitalizeRule | TitleCaseRule
+export type RenameRule =
+  | WindowsStyleRule
+  | ReplaceRule
+  | UpperCaseRule
+  | LowerCaseRule
+  | CapitalizeRule
+  | TitleCaseRule;

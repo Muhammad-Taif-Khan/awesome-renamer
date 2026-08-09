@@ -3,58 +3,58 @@ import { toLowerCase, toUpperCase, capitalize, toTitleCase } from "./toCase";
 import { replace } from "./replace";
 
 export interface RenameRuleImplementaion<T extends RenameRule = RenameRule> {
-  type: T["type"];
+  type: T["type"] | string;
 
-  apply(
-    filename: string,
-    context?: unknown,
-    options?: T
-  ): string;
+  apply(filename: string, context?: unknown, rule?: T): string;
 }
 
 const rules: RenameRuleImplementaion[] = [
-    {
-    type: 'uppercase',
+  {
+    type: "uppercase",
     apply: toUpperCase,
-}, 
- {
-    type: 'lowercase',
+  },
+  {
+    type: "lowercase",
     apply: toLowerCase,
-}, {
-    type: 'capitalize',
+  },
+  {
+    type: "capitalize",
     apply: capitalize,
-}, 
-{
-type: "titlecase",
-apply: toTitleCase
-},
-{
-    type: 'replace',
-    apply: (filename, _context, options) => {
-      const replaceRule = options as Extract<RenameRule, { type: "replace" }>;
+  },
+  {
+    type: "titlecase",
+    apply: toTitleCase,
+  },
+  {
+    type: "replace",
+    apply: (filename, _context, rule) => {
+      const replaceRule = rule as Extract<RenameRule, { type: "replace" }>;
       return replace(filename, replaceRule.search, replaceRule.replace);
     },
-}, {
-    type: 'windowsStyle',
-    apply: (filename)=> {return filename},
-}
+  },
+  {
+    type: "windowsStyle",
+    apply: (filename) => {
+      return filename;
+    },
+  },
 ];
 class RuleRegistry {
-    private  readonly rules = new Map<string, RenameRuleImplementaion>();
+  private readonly rules = new Map<string, RenameRuleImplementaion>();
 
-    register(rule: RenameRuleImplementaion){
-        if(this.rules.has(rule.type)){
-            throw new Error(`Rule '${rule.type}' already registered.`);
-        }
-        this.rules.set(rule.type, rule);
+  register(rule: { type: string; apply: RenameRuleImplementaion["apply"] }) {
+    if (this.rules.has(rule.type)) {
+      throw new Error(`Rule '${rule.type}' already registered.`);
     }
-    get(type: string){
-        return this.rules.get(type);
-    }
-    has(type: string){
-        return this.rules.has(type);
-    }
-    getAll() {
+    this.rules.set(rule.type, rule);
+  }
+  get(type: string) {
+    return this.rules.get(type);
+  }
+  has(type: string) {
+    return this.rules.has(type);
+  }
+  getAll() {
     return [...this.rules.values()];
   }
 }
