@@ -2,7 +2,7 @@ import { RenameRule } from "../types/rules";
 import { toLowerCase, toUpperCase, capitalize, toTitleCase } from "./toCase";
 import { replace } from "./replace";
 
-export interface RenameRuleImplementaion<T extends RenameRule = RenameRule> {
+interface RenameRuleImplementaion<T extends RenameRule = RenameRule> {
   type: T["type"] | string;
 
   apply(filename: string, context?: unknown, rule?: T): string;
