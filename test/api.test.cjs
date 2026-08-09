@@ -10,7 +10,7 @@ const {
   renameFileSameAsWindowsOS,
   registry,
   validateFileName,
-} = require("../.test-dist/index.cjs");
+} = require("../dist/index.cjs");
 
 async function createTestDirectory() {
   return mkdtemp(path.join(os.tmpdir(), "awesome-renamer"));

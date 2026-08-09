@@ -8,7 +8,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsdown",
-    "test": "tsdown src/index.ts --format cjs --platform node --out-dir .test-dist && node --test test/api.test.cjs",
+    "test": "npm run build && node --test test/api.test.cjs",
     "prepublishOnly": "npm run build"
   },
   "files": [
