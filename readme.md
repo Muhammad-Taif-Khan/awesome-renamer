@@ -1,5 +1,4 @@
 # awesome-renamer
-
 > Rename files and folders exactly like Windows Explorer.
 
 [![npm version](https://img.shields.io/npm/v/awesome-renamer)](https://www.npmjs.com/package/awesome-renamer)
@@ -150,7 +149,7 @@ const result = await awesomeRename(
   {
     rules: [
       { type: "replace", search: " ", replace: "-" },
-      { type: "uppercase", filename: "quarter one" },
+      { type: "uppercase"},
       { type: "windowsStyle" },
     ],
   },
@@ -181,10 +180,10 @@ Rules transform the requested name in the order listed. Case and replacement rul
 
 | Rule | Shape | Effect |
 | ---- | ----- | ------ |
-| Uppercase | `{ type: "uppercase", filename: string }` | Converts the basename to uppercase. |
-| Lowercase | `{ type: "lowercase", filename: string }` | Converts the basename to lowercase. |
-| Capitalize | `{ type: "capitalize", filename: string }` | Capitalizes the first basename character and lowercases the rest. |
-| Title case | `{ type: "titlecase", filename: string }` | Capitalizes each space-separated basename word. |
+| Uppercase | `{ type: "uppercase" }` | Converts the basename to uppercase. |
+| Lowercase | `{ type: "lowercase" }` | Converts the basename to lowercase. |
+| Capitalize | `{ type: "capitalize" }` | Capitalizes the first basename character and lowercases the rest. |
+| Title case | `{ type: "titlecase" }` | Capitalizes each space-separated basename word. |
 | Replace | `{ type: "replace", search: string, replace: string }` | Replaces every occurrence of `search` in the basename. |
 | Windows style | `{ type: "windowsStyle" }` | Resolves conflicts by adding or incrementing a suffix such as ` (2)`. |
 
@@ -196,7 +195,7 @@ const preview = await awesomeRename(
   "monthly report",
   {
     dryRun: true,
-    rules: [{ type: "titlecase", filename: "monthly report" }],
+    rules: [{ type: "titlecase" }],
   },
 );
 
