@@ -39,32 +39,39 @@ const rules: RenameRuleImplementaion[] = [
     },
   },
 ];
+/** Stores rule implementations used by {@link applyRules}. */
 class RuleRegistry {
   private readonly rules = new Map<string, RenameRuleImplementaion>();
 
+  /** Registers a unique rule implementation. @throws If `type` is already registered. */
   register(rule: { type: string; apply: RenameRuleImplementaion["apply"] }) {
     if (this.rules.has(rule.type)) {
       throw new Error(`Rule '${rule.type}' already registered.`);
     }
     this.rules.set(rule.type, rule);
   }
+  /** Gets the implementation registered for a rule type, if any. */
   get(type: string) {
     return this.rules.get(type);
   }
+  /** Returns whether a rule type has been registered. */
   has(type: string) {
     return this.rules.has(type);
   }
+  /** Returns all registered rule implementations in registration order. */
   getAll() {
     return [...this.rules.values()];
   }
 }
 
+/** Shared registry pre-populated with every built-in rename rule. */
 export const registry = new RuleRegistry();
 
 for (const rule of rules) {
     registry.register(rule)
 }
 
+/** Applies registered rule implementations to a filename in list order. */
 export function applyRules (filename: string, rules: RenameRule[]=[]){
     for (const rule of rules) {
         const implementation = registry.get(rule.type);

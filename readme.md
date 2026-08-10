@@ -1,21 +1,10 @@
 # awesome-renamer
-> Rename files and folders exactly like Windows Explorer.
+
+Rule-based asynchronous renaming for Node.js files and directories. `awesome-renamer` can validate Windows-compatible filenames, preserve or replace extensions, transform names, avoid collisions with Windows Explorer-style suffixes, and process selected items in batches.
 
 [![npm version](https://img.shields.io/npm/v/awesome-renamer)](https://www.npmjs.com/package/awesome-renamer)
 [![npm downloads](https://img.shields.io/npm/dm/awesome-renamer)](https://www.npmjs.com/package/awesome-renamer)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
-`awesome-renamer` provides the same filename conflict resolution used by Windows Explorer. It automatically generates names such as `file (2).txt`, `file (3).txt`, and so on, while validating filenames against Windows filename rules.
-
-## Features
-
-- Rename files and directories asynchronously.
-- Uses Windows Explorer-style duplicate naming (`file (2).txt`, `file (3).txt`, ...).
-- Avoids filename collisions within the same directory.
-- Removes invalid Windows filename characters or reports them as errors.
-- Rejects empty names and Windows reserved names such as `CON`, `AUX`, and `NUL`.
-- Includes TypeScript declarations.
-- Supports both ESM and CommonJS.
 
 ## Installation
 
@@ -23,188 +12,124 @@
 npm install awesome-renamer
 ```
 
+The package ships ESM, CommonJS, and TypeScript declarations.
+
+```ts
+import { awesomeRename } from "awesome-renamer";
+```
+
+```js
+const { awesomeRename } = require("awesome-renamer");
+```
+
 ## Quick start
 
 ```ts
 import { awesomeRename } from "awesome-renamer";
 
-const { newName, newPath } = await awesomeRename(
-  "C:/documents/draft.txt",
-  "report",
-);
+const result = await awesomeRename("C:/reports/draft.txt", "quarterly-report");
 
-console.log(newName); // "report.txt"
-console.log(newPath); // "C:\\documents\\report.txt" on Windows
+console.log(result.newName); // "quarterly-report.txt"
+console.log(result.newPath); // destination path
 ```
 
-By default, `awesomeRename` preserves the source extension and returns the final filename and destination path.
+`awesomeRename` preserves the source extension by default. Pass a basename such as `quarterly-report`, rather than `quarterly-report.txt`, unless you set `preserveExtension: false`.
 
-## Usage
+## How renaming works
 
-### Rename a file
+For `awesomeRename`, the package:
 
-```ts
-import { renameFileSameAsWindowsOS } from "awesome-renamer";
+1. Applies configured rules in order.
+2. Validates or sanitizes the resulting filename.
+3. Preserves the source extension unless disabled.
+4. Optionally resolves an occupied destination with the `windowsStyle` rule.
+5. Renames the source, or returns the planned result when `dryRun` is enabled.
 
-const finalName = await renameFileSameAsWindowsOS(
-  "C:/uploads/photo.jpg",
-  "holiday.jpg",
-);
-
-console.log(finalName); // "holiday.jpg"
-```
-
-If `holiday.jpg` already exists, the package automatically uses `holiday (2).jpg`. If that also exists, it tries `holiday (3).jpg` and continues increasing the counter until an available name is found.
-
-### Return the absolute path
-
-Set `returnValue` to `"absolutePath"` when you need the full destination path instead of only its filename:
-
-```ts
-import { renameFileSameAsWindowsOS } from "awesome-renamer";
-
-const finalPath = await renameFileSameAsWindowsOS(
-  "C:/uploads/photo.jpg",
-  "holiday.jpg",
-  { returnValue: "absolutePath" },
-);
-
-console.log(finalPath); // "C:\\uploads\\holiday.jpg" on Windows
-```
-
-### Rename a directory
-
-```ts
-import { renameFileSameAsWindowsOS } from "awesome-renamer";
-
-const finalName = await renameFileSameAsWindowsOS(
-  "C:/projects/untitled-folder",
-  "archive",
-);
-
-console.log(finalName); // "archive"
-```
-
-### Handle invalid characters
-
-By default, invalid Windows filename characters are removed:
-
-```ts
-import { renameFileSameAsWindowsOS } from "awesome-renamer";
-
-const finalName = await renameFileSameAsWindowsOS(
-  "C:/documents/draft.txt",
-  "report:final?.txt",
-);
-
-console.log(finalName); // "reportfinal.txt"
-```
-
-Pass `"error"` to reject the name instead:
-
-```ts
-await renameFileSameAsWindowsOS(
-  "C:/documents/draft.txt",
-  "report:final?.txt",
-  { onInvalidChar: "error" },
-);
-// Throws: Filename contains invalid chars: ...
-```
-
-### Validate a name without renaming anything
-
-```ts
-import { validateFileName } from "awesome-renamer";
-
-validateFileName("quarter:one?.pdf");
-// => "quarterone.pdf"
-
-validateFileName("quarter:one?.pdf", "error");
-// Throws because the name contains invalid characters
-```
-
-This is useful for validating form input or previewing the sanitized name before performing a filesystem operation.
-
-### CommonJS
-
-```js
-const {
-  renameFileSameAsWindowsOS,
-  validateFileName,
-} = require("awesome-renamer");
-```
+File-system errors, including missing sources and permission errors, are rejected to the caller. Filename checks follow Windows restrictions even when the code runs on a different operating system.
 
 ## API
 
 ### `awesomeRename(oldFilePath, newName, options?)`
 
-The primary API for renaming one file or directory. It applies any configured rules, validates the result, and then renames the item. It resolves with `{ newName, newPath }`.
+Renames one file or directory and returns metadata for both names.
 
 ```ts
 import { awesomeRename } from "awesome-renamer";
 
-const result = await awesomeRename(
-  "C:/uploads/draft.TXT",
-  "quarter one",
-  {
-    rules: [
-      { type: "replace", search: " ", replace: "-" },
-      { type: "uppercase"},
-      { type: "windowsStyle" },
-    ],
-  },
-);
+const result = await awesomeRename("C:/uploads/draft.TXT", "quarter one", {
+  rules: [
+    { type: "replace", search: " ", replace: "-" },
+    { type: "uppercase" },
+  ],
+});
 
-console.log(result);
-// { newName: "QUARTER-ONE.TXT", newPath: "C:\\uploads\\QUARTER-ONE.TXT" }
+// result.newName is "QUARTER-ONE.TXT"
 ```
 
 | Parameter | Type | Description |
-| ---------- | ------------------------ | ------------------------------------------------------- |
-| `oldFilePath` | `string` | Path of the existing file or directory. |
-| `newName` | `string` | Requested name, before rules and validation are applied. |
-| `options` | `RenameOptions` | Optional rename, validation, and rule settings. |
+| --- | --- | --- |
+| `oldFilePath` | `string` | Path to the existing file or directory. |
+| `newName` | `string` | Requested filename before rules and validation. |
+| `options` | `RenameOptions` | Optional rename settings. |
 
-#### `RenameOptions`
-
-| Property | Type | Default | Description |
-| -------- | ------------------------------ | ------------ | ---------------------------------------------------------------------- |
-| `onInvalidChar` | `"escape" \| "error"` | `"escape"` | Remove invalid characters or throw an error. |
-| `preserveExtension` | `boolean` | `true` | Append the source item's extension to `newName`. Set to `false` to supply the complete target name, including any new extension. |
-| `dryRun` | `boolean` | `false` | Return the planned `{ newName, newPath }` without changing the filesystem. |
-| `rules` | `RenameRule[]` | `[]` | Rules applied in order before validation and renaming. |
-
-#### Built-in rules
-
-Rules transform the requested name in the order listed. Case and replacement rules leave the extension unchanged; extension preservation is configured separately with `preserveExtension`.
-
-| Rule | Shape | Effect |
-| ---- | ----- | ------ |
-| Uppercase | `{ type: "uppercase" }` | Converts the basename to uppercase. |
-| Lowercase | `{ type: "lowercase" }` | Converts the basename to lowercase. |
-| Capitalize | `{ type: "capitalize" }` | Capitalizes the first basename character and lowercases the rest. |
-| Title case | `{ type: "titlecase" }` | Capitalizes each space-separated basename word. |
-| Replace | `{ type: "replace", search: string, replace: string }` | Replaces every occurrence of `search` in the basename. |
-| Windows style | `{ type: "windowsStyle" }` | Resolves conflicts by adding or incrementing a suffix such as ` (2)`. |
-
-Use `dryRun` to preview a rule chain safely:
+The fulfilled result has this shape:
 
 ```ts
-const preview = await awesomeRename(
-  "C:/uploads/draft.txt",
-  "monthly report",
-  {
-    dryRun: true,
-    rules: [{ type: "titlecase" }],
-  },
-);
+{
+  originalPath: string;
+  originalName: string;
+  originalExtension: string;
+  newName: string;
+  newPath: string;
+  newExtension: string;
+}
+```
+
+### `RenameOptions`
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `onInvalidChar` | `"escape" \| "error"` | `"escape"` | Remove invalid characters, or throw when any are present. |
+| `preserveExtension` | `boolean` | `true` | Append the extension from `oldFilePath` after rules run. Set `false` when `newName` includes the desired extension. |
+| `dryRun` | `boolean` | `false` | Return the destination metadata without changing the filesystem. |
+| `rules` | `RenameRule[]` | `[]` | Rules to apply in order before validation. |
+
+Preview a rename safely:
+
+```ts
+const preview = await awesomeRename("C:/uploads/draft.txt", "monthly report", {
+  dryRun: true,
+  rules: [{ type: "titlecase" }],
+});
 
 console.log(preview.newName); // "Monthly Report.txt"
 ```
 
-### `awesomeRenameBatch(filesToRename, options?)`
+### Rules
 
-Renames several items using the same `RenameOptions`. It always resolves with results in input order: successful entries contain the rename result plus `renamed: true`; failed entries contain an error message and `renamed: false`. A failed item does not stop the remaining requests.
+Rules transform the requested name in order. The case and replacement rules operate on the filename portion and retain any extension already present in the requested name.
+
+| Rule | Shape | Effect |
+| --- | --- | --- |
+| Uppercase | `{ type: "uppercase" }` | Makes the basename uppercase. |
+| Lowercase | `{ type: "lowercase" }` | Makes the basename lowercase. |
+| Capitalize | `{ type: "capitalize" }` | Uppercases the first character and lowercases the remainder. |
+| Title case | `{ type: "titlecase" }` | Capitalizes each space-separated word. |
+| Replace | `{ type: "replace", search, replace }` | Replaces every occurrence in the basename. |
+| Windows style | `{ type: "windowsStyle" }` | If the destination exists, chooses `name (2).ext`, then higher suffixes as needed. |
+
+To change a file extension and still resolve conflicts, disable extension preservation:
+
+```ts
+await awesomeRename("C:/uploads/draft.txt", "report.json", {
+  preserveExtension: false,
+  rules: [{ type: "windowsStyle" }],
+});
+```
+
+### `awesomeRenameBatch(files, options?)`
+
+Processes multiple rename requests concurrently. Successful items contain the same metadata as `awesomeRename` plus `renamed: true`. A rename failure becomes `{ error, renamed: false }`; it does not stop remaining items.
 
 ```ts
 import { awesomeRenameBatch } from "awesome-renamer";
@@ -214,21 +139,68 @@ const results = await awesomeRenameBatch(
     { oldPath: "C:/uploads/one.txt", newName: "report-one" },
     { oldPath: "C:/uploads/two.txt", newName: "report-two" },
   ],
-  {
-    limit: 2,
-    rules: [{ type: "windowsStyle" }],
-  },
+  { limit: 2, rules: [{ type: "windowsStyle" }] },
 );
 ```
 
-| Parameter | Type | Description |
-| ---------- | ------------------------ | ------------------------------------------------------- |
-| `filesToRename` | `{ oldPath: string; newName: string }[]` | Rename requests to process. |
-| `options` | `RenameOptions & { limit?: number }` | Shared options. `limit` controls concurrency (default: `6`, clamped to `1`–`30`). |
+Along with `RenameOptions`, batch options accept:
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `limit` | `number` | `6` | Maximum concurrent renames, clamped to `1` through `30`. |
+| `filters` | `Filter[]` | — | Every filter must match for an item to be processed. |
+| `shouldRename` | `(file: FileMetadata) => boolean \| Promise<boolean>` | — | Final per-item predicate, evaluated only after filters pass. |
+
+Items excluded by filters or `shouldRename` are not returned. Processed results preserve their input order.
+
+#### Batch filters
+
+Filters are case-insensitive where they compare filenames or extensions. Their ranges are inclusive.
+
+```ts
+const results = await awesomeRenameBatch(requests, {
+  filters: [
+    { type: "extension", extensions: [".jpg", ".png"] },
+    { type: "filename", startsWith: ["camera-"], contains: ["2026"] },
+    { type: "size", min: 1_000, max: 10_000_000 },
+    { type: "dateModified", from: "2026-01-01", precision: "day" },
+  ],
+  shouldRename: ({ name }) => !name.includes("processed"),
+});
+```
+
+| Filter | Shape | Matches |
+| --- | --- | --- |
+| Extension | `{ type: "extension", extensions: [".txt"] }` | Any listed extension. An empty list matches all. |
+| Filename | `{ type: "filename", contains?, startsWith?, endsWith? }` | All supplied criterion groups; a value may match any string within its group. |
+| Size | `{ type: "size", min?, max? }` | File byte size in the inclusive range. |
+| Created | `{ type: "dateCreated", from?, to?, precision? }` | Creation time in the inclusive range. |
+| Modified | `{ type: "dateModified", from?, to?, precision? }` | Modification time in the inclusive range. |
+
+Date values can be `Date`, string, or number. `precision` is one of `millisecond`, `second`, `minute`, `hour`, or `day` and defaults to `millisecond`.
+
+`FileMetadata`, provided to `shouldRename`, contains `name`, `path`, `size`, `createdAt`, and `lastModified`.
+
+### `validateFileName(filename, onInvalidChar?)`
+
+Checks a filename without reading or writing the filesystem.
+
+```ts
+import { validateFileName } from "awesome-renamer";
+
+validateFileName("quarter:one?.pdf"); // "quarterone.pdf"
+validateFileName("quarter:one?.pdf", "error"); // throws
+```
+
+It rejects non-strings, blank names, and these reserved device names (case-insensitive): `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, and `LPT1`–`LPT9`.
+
+The invalid characters are `<`, `>`, `:`, `"`, `/`, `\`, `|`, `?`, `*`, and ASCII control characters `U+0000`–`U+001F`. The default `"escape"` mode removes them, but still throws if the sanitized name is blank. Use `"error"` to reject the input unchanged.
+
+Pass a filename—not a path—to this function.
 
 ### `registry`
 
-`registry` exposes the built-in rule registry. Use `get`, `has`, and `getAll` to inspect rules, or `register` to add a rule with a unique `type`.
+`registry` holds the built-in rule implementations. It exposes `has(type)`, `get(type)`, `getAll()`, and `register(rule)`.
 
 ```ts
 import { registry } from "awesome-renamer";
@@ -237,124 +209,51 @@ registry.register({
   type: "trim",
   apply: (filename) => filename.trim(),
 });
+
+await awesomeRename("C:/uploads/draft.txt", "  report  ", {
+  rules: [{ type: "trim" } as never],
+});
 ```
 
-Registering a rule type that already exists throws an error. Custom rules can be inspected through the registry; the built-in `RenameRule` TypeScript type currently covers the rules listed above.
-
-### Legacy Windows-style API
-
-`renameFileSameAsWindowsOS` remains available for compatibility, but is deprecated and will be removed in the next major release. Use `awesomeRename` with `{ rules: [{ type: "windowsStyle" }] }` for new code.
+Rule types must be unique; attempting to re-register a type throws. Custom rule types require a type assertion today because the exported `RenameRule` union intentionally describes the built-in rules.
 
 ### `renameFileSameAsWindowsOS(oldFilePath, newName, options?)`
 
-Renames a file or directory and resolves with the final filename.
+> Deprecated: use `awesomeRename(oldFilePath, newName, { rules: [{ type: "windowsStyle" }] })` for new code.
 
-| Parameter | Type | Description |
-| ---------- | ------------------------ | ------------------------------------------------------- |
-| `oldFilePath` | `string` | Path of the existing file or directory. |
-| `newName` | `string` | Requested name. It is validated before the rename. |
-| `options` | `RenameOptions` | Optional validation and return-value settings. |
+This compatibility function always resolves occupied names with a Windows-style counter and returns a string rather than metadata.
 
-Returns a `Promise<string>` containing either the final filename or its absolute path, according to `options.returnValue`.
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `onInvalidChar` | `"escape" \| "error"` | `"escape"` | Validation mode. |
+| `returnValue` | `"name" \| "absolutePath"` | `"name"` | Return the final name or full destination path. |
 
-### Rename options
-
-| Property | Type | Default | Description |
-| -------- | ------------------------------ | ------------ | ---------------------------------------------------------------------- |
-| `onInvalidChar` | `"escape" \| "error"` | `"escape"` | Remove invalid characters or throw an error. |
-| `returnValue` | `"name" \| "absolutePath"` | `"name"` | Choose whether the resolved value is the final filename or destination path. |
-
-Options can be combined:
-
-```ts
-const finalPath = await renameFileSameAsWindowsOS(
-  "C:/documents/draft.txt",
-  "report:final?.txt",
-  {
-    onInvalidChar: "escape",
-    returnValue: "absolutePath",
-  },
-);
-```
-
-### Notes
-
-- If `newName` exactly matches the current basename, no filesystem rename is performed and that name is returned.
-- A counter beginning at ` (2)` is added when the requested name conflicts with an existing item.
-- The original file extension is preserved. Pass a name compatible with that extension—for example, rename a `.txt` file with a name ending in `.txt`.
-- Filesystem errors from Node.js (such as a missing source path or insufficient permissions) are passed through to the caller.
-
-### `validateFileName(filename, onInvalidChar?)`
-
-Validates and optionally sanitizes a filename without accessing the filesystem.
-
-| Parameter | Type | Description |
-| ---------- | ------------------------------ | ------------------------------------------------------ |
-| `filename` | `string` | Filename to validate. |
-| `onInvalidChar` | `"escape" \| "error"` | Optional. Defaults to `"escape"`. |
-
-Returns the validated `string`.
-
-The following characters and control-character range are treated as invalid:
-
-```text
-< > : " / \ | ? * and ASCII control characters 0x00-0x1F
-```
-
-The validator also rejects blank names and the reserved names:
-
-- `CON`
-- `PRN`
-- `AUX`
-- `NUL`
-- `COM1`–`COM9`
-- `LPT1`–`LPT9`
-
-(case-insensitive)
-
-## Use cases
-
-- Reproducing Windows Explorer's rename behavior.
-- Preventing duplicate filenames in upload or document workflows.
-- Sanitizing user-provided filenames before saving them.
-- Renaming exported reports, downloaded assets, or generated media.
-- Sharing filename-validation behavior between a frontend and a Node.js backend.
+Unlike `awesomeRename`, this helper treats `newName` as the complete target filename and does not automatically preserve the source extension.
 
 ## Error handling
 
-Because renaming touches the filesystem, wrap calls in `try`/`catch` when an error should be shown to a user or logged.
+Use `try`/`catch` around single renames. Batch operations instead capture errors per processed item.
 
 ```ts
-import { renameFileSameAsWindowsOS } from "awesome-renamer";
-
 try {
-  const finalName = await renameFileSameAsWindowsOS(
-    "C:/documents/draft.txt",
-    "CON",
-  );
-
-  console.log(`Renamed to ${finalName}`);
+  await awesomeRename("C:/documents/draft.txt", "CON");
 } catch (error) {
-  console.error("Could not rename the file:", error);
+  console.error("Rename failed:", error);
 }
 ```
 
-## Testing
+## TypeScript exports
 
-Run the test suite with:
+The package exports function signature and data types for API annotations: `RenameOptions`, `RenameRule`, `AwesomeRenameReturnValue`, `AwesomeRenameBatchReturnType`, `AwesomeRenameFailedRename`, `FileMetadata`, `Filter`, `ShouldRename`, `WindowsStyleRenameOptions`, and the corresponding callable type aliases.
+
+## Development
 
 ```bash
 npm test
 ```
 
-The tests cover:
-
-- Filename validation
-- Invalid-character handling
-- File and directory renaming
-- Collision numbering
-- Return-value modes
+This builds the package and runs the Node.js API test suite.
 
 ## License
 
-MIT
+[MIT](LICENSE)

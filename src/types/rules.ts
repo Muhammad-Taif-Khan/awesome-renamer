@@ -16,6 +16,7 @@ type ReplaceRule = {
     replace: string;
 };
 
+/** A built-in filename transformation or collision-resolution rule. */
 export type RenameRule =
   | WindowsStyleRule
   | ReplaceRule

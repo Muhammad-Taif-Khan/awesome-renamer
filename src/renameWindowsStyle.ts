@@ -1,6 +1,6 @@
 import path from "path";
 import { getduplicatedNameWithCounter } from "./conflict";
-import { AwesomeRename, RenameFileSameAsWindowsOSType } from "./types/types";
+import { AwesomeRename, RenameFileSameAsWindowsOSType } from "./types";
 import { rename, stat } from "fs/promises";
 import { validateFileName } from "./validator";
 import { renameFile } from "./rename";
@@ -25,15 +25,22 @@ export const renameWindowsStyle: AwesomeRename = async (
   let newNameInfo;
   try {
     await stat(requestedPath);
-    newNameInfo = await getduplicatedNameWithCounter(oldFilePath, requestedName);
+    newNameInfo = await getduplicatedNameWithCounter(
+      oldFilePath,
+      requestedName,
+    );
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-        if((error as NodeJS.ErrnoException).code === "EPERM"){
-            throw new Error(`Permission denied while renaming: ${path.basename(oldFilePath)}`)
-        }
-        if((error as NodeJS.ErrnoException).code === "EACCES"){
-            throw new Error(`File ${path.basename(oldFilePath)} is being used by another program or you don't have the required permission.`)
-        }
+      if ((error as NodeJS.ErrnoException).code === "EPERM") {
+        throw new Error(
+          `Permission denied while renaming: ${path.basename(oldFilePath)}`,
+        );
+      }
+      if ((error as NodeJS.ErrnoException).code === "EACCES") {
+        throw new Error(
+          `File ${path.basename(oldFilePath)} is being used by another program or you don't have the required permission.`,
+        );
+      }
       throw error;
     }
   }
@@ -43,8 +50,22 @@ export const renameWindowsStyle: AwesomeRename = async (
       ? newNameInfo.basename
       : `${newNameInfo.basename}${newNameInfo.ext}`
     : newName;
+  const fileNewContext = await renameFile(
+    oldFilePath,
+    _newName,
+    options?.preserveExtension,
+    options?.dryRun,
+  );
 
-  return renameFile(oldFilePath, _newName, options?.preserveExtension, options?.dryRun);
+  const fileContext = {
+    originalPath: oldFilePath,
+    originalName: path.basename(oldFilePath),
+    originalExtension: path.extname(oldFilePath),
+    ...fileNewContext,
+    newExtension: path.extname(fileNewContext.newName),
+  };
+
+  return fileContext;
 };
 
 /**
@@ -60,11 +81,14 @@ export const renameWindowsStyle: AwesomeRename = async (
  * ```
  *
  * This function automatically appends a Windows Explorer-style numeric suffix
- * (e.g. `(1)`, `(2)`, ...) when a file with the target name already exists.
+ * (e.g. `(2)`, `(3)`, ...) when a file with the target name already exists.
  * The suffix is determined by scanning existing files with the same base name.
  *
- * @param oldFilePath - Absolute path of the file to rename.
- * @param fileNewName - The desired new file name (without the original path).
+ * @param oldFilePath - Path of the file or directory to rename.
+ * @param newName - The desired new filename.
+ * @param renameOptions - Validation and return-value options.
+ * @returns The final filename, or destination path when `returnValue` is
+ * `"absolutePath"`.
  */
 export const renameFileSameAsWindowsOS: RenameFileSameAsWindowsOSType = async (
   oldFilePath,
