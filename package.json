@@ -1,6 +1,6 @@
 {
   "name": "awesome-renamer",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Rule-based file and directory renaming with single and batch APIs, validation, and collision handling.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
