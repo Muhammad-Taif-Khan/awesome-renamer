@@ -22,13 +22,18 @@ export const renameWindowsStyle: AwesomeRename = async (
     ? `${newName}${path.extname(oldFilePath)}`
     : newName;
   const requestedPath = path.join(fileDir, requestedName);
+
   let newNameInfo;
   try {
     await stat(requestedPath);
-    newNameInfo = await getduplicatedNameWithCounter(
-      oldFilePath,
-      requestedName,
-    );
+    //if the requested file name is the same as provided original name,
+    //maybe the only difference is text case then ignore puting the counter
+    if (requestedPath.toLowerCase() !== oldFilePath.toLowerCase()) {
+      newNameInfo = await getduplicatedNameWithCounter(
+        oldFilePath,
+        requestedName,
+      );
+    }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
       if ((error as NodeJS.ErrnoException).code === "EPERM") {
@@ -46,14 +51,13 @@ export const renameWindowsStyle: AwesomeRename = async (
   }
 
   const _newName = newNameInfo
-    ? preserveExtension
-      ? newNameInfo.basename
-      : `${newNameInfo.basename}${newNameInfo.ext}`
-    : newName;
+    ? `${newNameInfo.basename}${newNameInfo.ext}`
+    : requestedName;
+
   const fileNewContext = await renameFile(
     oldFilePath,
     _newName,
-    options?.preserveExtension,
+    false, //preserve extension is set here to false because it has alreadhy applied at the top
     options?.dryRun,
   );
 

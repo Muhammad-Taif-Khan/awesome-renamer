@@ -380,6 +380,7 @@ test("awesomeRename applies lowercase and capitalize rules", async () => {
 test("awesomeRename applies Windows-style collision resolution", async () => {
   const directory = await createTestDirectory();
   const source = path.join(directory, "draft.txt");
+
   await Promise.all([
     writeFile(source, "draft contents"),
     writeFile(path.join(directory, "report.txt"), "existing report"),
@@ -415,6 +416,19 @@ test("Windows-style renaming handles collisions after changing the extension", a
   });
 
   assert.equal(result.newName, "report (2).json");
+  assert.equal(await readFile(result.newPath, "utf8"), "draft contents");
+});
+test("Windows-style renaming handles only filename text case changes ", async () => {
+  const directory = await createTestDirectory();
+  const source = path.join(directory, "draft.txt");
+  await Promise.all([writeFile(source, "draft contents")]);
+
+  const result = await awesomeRename(source, "draft.txt", {
+    preserveExtension: false,
+    rules: [{ type: "uppercase" }],
+  });
+
+  assert.equal(result.newName, "DRAFT.txt");
   assert.equal(await readFile(result.newPath, "utf8"), "draft contents");
 });
 
