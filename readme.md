@@ -129,7 +129,19 @@ await awesomeRename("C:/uploads/draft.txt", "report.json", {
 
 ### `awesomeRenameBatch(files, options?)`
 
-Processes multiple rename requests concurrently. Successful items contain the same metadata as `awesomeRename` plus `renamed: true`. A rename failure becomes `{ error, renamed: false }`; it does not stop remaining items.
+Processes multiple rename requests concurrently. Successful items contain the same metadata as `awesomeRename` plus `renamed: true`. A rename failure includes the error and original source metadata, so it can be identified without referring back to the request:
+
+```ts
+{
+  error: "CON is a windows reserved name, you cannot use it",
+  originalPath: "C:/uploads/two.txt",
+  originalName: "two.txt",
+  originalExtension: ".txt",
+  renamed: false,
+}
+```
+
+Failures do not stop remaining items.
 
 ```ts
 import { awesomeRenameBatch } from "awesome-renamer";
@@ -244,7 +256,7 @@ try {
 
 ## TypeScript exports
 
-The package exports function signature and data types for API annotations: `RenameOptions`, `RenameRule`, `AwesomeRenameReturnValue`, `AwesomeRenameBatchReturnType`, `AwesomeRenameFailedRename`, `FileMetadata`, `Filter`, `ShouldRename`, `WindowsStyleRenameOptions`, and the corresponding callable type aliases.
+The package exports function signature and data types for API annotations: `RenameOptions`, `RenameRule`, `AwesomeRenameReturnValue`, `AwesomeRenameBatchReturnType`, `AwesomeRenameSuccessReturn`, `AwesomeRenameFailedRename`, `FileMetadata`, `Filter`, `ShouldRename`, `WindowsStyleRenameOptions`, and the corresponding callable type aliases.
 
 ## Development
 

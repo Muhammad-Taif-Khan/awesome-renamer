@@ -245,7 +245,10 @@ test("awesomeRenameBatch combines filters and shouldRename", async () => {
     },
   );
 
-  assert.deepEqual(evaluatedNames, ["included.txt", "declined.txt"]);
+  assert.deepEqual(
+    evaluatedNames.sort(),
+    ["included.txt", "declined.txt"].sort(),
+  );
   assert.equal(results.length, 1);
   assert.equal(results[0].renamed, true);
   assert.equal(results[0].newName, "included-renamed.txt");
@@ -457,6 +460,9 @@ test("awesomeRenameBatch reports successful and failed requests in input order",
   });
   assert.deepEqual(results[1], {
     error: "CON is a windows reserved name, you cannot use it",
+    originalPath: path.join(directory, "second.txt"),
+    originalName: "second.txt",
+    originalExtension: ".txt",
     renamed: false,
   });
   assert.equal(await readFile(second, "utf8"), "second");

@@ -158,6 +158,9 @@ export const awesomeRenameBatch: AwesomeRenameBatch = async (
       } catch (err) {
         return {
           error: (err as Error).message,
+          originalName: path.basename(file.oldPath),
+          originalExtension: path.extname(file.oldPath),
+          originalPath: file.oldPath,
           renamed: false,
         };
       }

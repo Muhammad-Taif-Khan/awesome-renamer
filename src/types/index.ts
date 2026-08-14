@@ -57,12 +57,19 @@ export type AwesomeRename = (
 export type AwesomeRenameFailedRename = {
   error: string;
   renamed: boolean;
-}
+  originalPath: string;
+  originalName: string;
+  originalExtension: string;
+};
 
 /** Result for one item processed by {@link awesomeRenameBatch}. */
-export type AwesomeRenameBatchReturnType = (AwesomeRenameReturnValue & {
+export interface AwesomeRenameSuccessReturn extends AwesomeRenameReturnValue {
   renamed: boolean;
-}) | AwesomeRenameFailedRename;
+}
+
+export type AwesomeRenameBatchReturnType =
+  | AwesomeRenameSuccessReturn
+  | AwesomeRenameFailedRename;
 
 /** Predicate used to decide whether an eligible batch item should be renamed. */
 export type ShouldRename = (
