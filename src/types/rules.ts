@@ -15,7 +15,14 @@ type ReplaceRule = {
     search: string;
     replace: string;
 };
-
+type PrefixRule = {
+  type: "prefix";
+  value: string;
+};
+type SuffixRule = {
+  type: "suffix";
+  value: string;
+};
 /** A built-in filename transformation or collision-resolution rule. */
 export type RenameRule =
   | WindowsStyleRule
@@ -23,4 +30,6 @@ export type RenameRule =
   | UpperCaseRule
   | LowerCaseRule
   | CapitalizeRule
-  | TitleCaseRule;
+  | TitleCaseRule
+  | PrefixRule
+  | SuffixRule;

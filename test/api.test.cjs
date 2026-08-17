@@ -379,6 +379,28 @@ test("awesomeRename applies lowercase and capitalize rules", async () => {
   assert.equal(lowerCaseResult.newName, "mixed.txt");
   assert.equal(capitalizeResult.newName, "Mixed name.txt");
 });
+test("awesomeRename add prefix to the filename", async () => {
+  const directory = await createTestDirectory();
+  const source = path.join(directory, "source.txt");
+  await writeFile(source, "source");
+
+  const prefixedResult = await awesomeRename(source, "source", {
+    rules: [{ type: "prefix", value: "PREFIX_" }],
+  });
+
+  assert.equal(prefixedResult.newName, "PREFIX_source.txt");
+});
+test("awesomeRename add suffix to the filename before the extension", async () => {
+  const directory = await createTestDirectory();
+  const source = path.join(directory, "source.txt");
+  await writeFile(source, "source");
+
+  const prefixedResult = await awesomeRename(source, "source", {
+    rules: [{ type: "suffix", value: "_SUFFIX" }],
+  });
+
+  assert.equal(prefixedResult.newName, "source_SUFFIX.txt");
+});
 
 test("awesomeRename applies Windows-style collision resolution", async () => {
   const directory = await createTestDirectory();
@@ -421,6 +443,7 @@ test("Windows-style renaming handles collisions after changing the extension", a
   assert.equal(result.newName, "report (2).json");
   assert.equal(await readFile(result.newPath, "utf8"), "draft contents");
 });
+
 test("Windows-style renaming handles only filename text case changes ", async () => {
   const directory = await createTestDirectory();
   const source = path.join(directory, "draft.txt");

@@ -12,6 +12,7 @@ export type {
   AwesomeRenameBatch,
   AwesomeRenameBatchReturnType,
   AwesomeRenameFailedRename,
+  AwesomeRenameSuccessReturn,
   AwesomeRenameReturnValue,
   FileMetadata,
   Filter,

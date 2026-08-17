@@ -116,6 +116,8 @@ Rules transform the requested name in order. The case and replacement rules oper
 | Capitalize | `{ type: "capitalize" }` | Uppercases the first character and lowercases the remainder. |
 | Title case | `{ type: "titlecase" }` | Capitalizes each space-separated word. |
 | Replace | `{ type: "replace", search, replace }` | Replaces every occurrence in the basename. |
+| Prefix | `{ type: "prefix", value }` | Adds `value` to the start of the filename. |
+| Suffix | `{ type: "suffix", value }` | Adds `value` to the filename immediately before its extension. |
 | Windows style | `{ type: "windowsStyle" }` | If the destination exists, chooses `name (2).ext`, then higher suffixes as needed. |
 
 To change a file extension and still resolve conflicts, disable extension preservation:

@@ -1,6 +1,8 @@
 import { RenameRule } from "../types/rules";
 import { toLowerCase, toUpperCase, capitalize, toTitleCase } from "./toCase";
 import { replace } from "./replace";
+import { addPrefix } from "./prefix";
+import { addSuffix } from "./suffix";
 
 interface RenameRuleImplementaion<T extends RenameRule = RenameRule> {
   type: T["type"] | string;
@@ -9,6 +11,13 @@ interface RenameRuleImplementaion<T extends RenameRule = RenameRule> {
 }
 
 const rules: RenameRuleImplementaion[] = [
+  {
+    type: "replace",
+    apply: (filename, _context, rule) => {
+      const replaceRule = rule as Extract<RenameRule, { type: "replace" }>;
+      return replace(filename, replaceRule.search, replaceRule.replace);
+    },
+  },
   {
     type: "uppercase",
     apply: toUpperCase,
@@ -26,10 +35,17 @@ const rules: RenameRuleImplementaion[] = [
     apply: toTitleCase,
   },
   {
-    type: "replace",
+    type: "suffix",
     apply: (filename, _context, rule) => {
-      const replaceRule = rule as Extract<RenameRule, { type: "replace" }>;
-      return replace(filename, replaceRule.search, replaceRule.replace);
+      const suffixRule = rule as Extract<RenameRule, { type: "suffix" }>;
+      return addSuffix(filename, suffixRule.value);
+    },
+  },
+  {
+    type: "prefix",
+    apply: (filename, _context, rule) => {
+      const prefixRule = rule as Extract<RenameRule, { type: "prefix" }>;
+      return addPrefix(filename, prefixRule.value);
     },
   },
   {
