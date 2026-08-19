@@ -6,6 +6,21 @@ Rule-based asynchronous renaming for Node.js files and directories. `awesome-ren
 [![npm downloads](https://img.shields.io/npm/dm/awesome-renamer)](https://www.npmjs.com/package/awesome-renamer)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## Awesome Renamer Desktop
+
+Looking for a graphical application instead of using the library directly?
+
+**Awesome Renamer Desktop** is a free and open-source Windows desktop application built on top of the `awesome-renamer` package.
+
+It provides a graphical interface for:
+
+- Selecting files using drag & drop or a file picker
+- Filtering files
+- Applying rename rules
+- Previewing changes
+- Batch renaming files
+
+[View Awesome Renamer Desktop →](https://github.com/Muhammad-Taif-Khan/awesome-renamer-desktop/)
 ## Installation
 
 ```bash
